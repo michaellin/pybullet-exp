@@ -16,9 +16,8 @@ class FrankaHand:
     self.maxVelocity = .35
     self.maxForce = 20.
     self.fingerForce = 2
-    self.fingerIndices = [2, 3]
-    self.leftFingerIndex = 2
-    self.rightFingerIndex = 3
+    self.leftFingerIndex = 0
+    self.rightFingerIndex = 1
     self.useSimulation = 1
     self.reset()
 
@@ -47,19 +46,20 @@ class FrankaHand:
                             targetPosition=0.04,
                             force=self.maxForce)
 
+    # create the gearing contraint
+    c = p.createConstraint(self.gripperUid,
+                           self.leftFingerIndex,
+                           self.gripperUid,
+                           self.rightFingerIndex,
+                           jointType=p.JOINT_GEAR,
+                           jointAxis=[0, 1, 0],
+                           parentFramePosition=[0, 0, 0],
+                           childFramePosition=[0, 0, 0])
+    p.changeConstraint(c, gearRatio=-1, maxForce=10000)
+
     #self.trayUid = p.loadURDF(os.path.join(self.urdfRootPath, "tray/tray.urdf"), 0.640000,
     #                          0.075000, -0.190000, 0.000000, 0.000000, 1.000000, 0.000000)
 
-    #self.motorName = "N/A"
-    #self.motorIndex = 0
-
-    #for i in range(self.numJoints):
-    #  jointInfo = p.getJointInfo(self.gripperUid, i)
-    #  qIndex = jointInfo[3]
-    #  if qIndex > -1:
-    #    print("motorname: {}, index: {}".format(jointInfo[1], i))
-    #    self.motorName = str(jointInfo[1])
-    #    self.motorIndex = i
 
   def applyAction(self, motorCommand):
       # only actuated one finger and mimic with the other one
@@ -68,15 +68,6 @@ class FrankaHand:
                               p.POSITION_CONTROL,
                               targetPosition=motorCommand,
                               force=self.maxForce)
-
-      # get position of left finger (position, velocity, joint forces, motor torque)
-      (pos, vel, f, t) = p.getJointState(self.gripperUid, self.leftFingerIndex)
-      p.setJointMotorControl2(self.gripperUid,
-                              self.rightFingerIndex,
-                              p.POSITION_CONTROL,
-                              targetPosition=pos,
-                              force=self.maxForce)
-
 
 if __name__ == "__main__":
   p.connect(p.GUI)

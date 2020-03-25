@@ -76,13 +76,16 @@ if __name__ == "__main__":
   fh_env = FrankaHandGymEnv(maxSteps=10000)
   stepCount = 0
   closed = False
+  p.setRealTimeSimulation(1)
   while (stepCount < fh_env._maxSteps):
       fingerPos = 0.02*(np.sin(2*np.pi*stepCount/100)+1)
-      if (stepCount > 1000):
-          if (not closed):
-              fh_env._gripper.applyAction(fingerPos)
-          if (fingerPos == 0):
-              closed = True
+
+      #fh_env._gripper.applyAction(fingerPos)
+      #if (stepCount > 1000):
+      #    if (not closed):
+      #        fh_env._gripper.applyAction(fingerPos)
+      #    if (fingerPos == 0):
+      #        closed = True
       stepCount += 1
-      p.stepSimulation()
+      #p.stepSimulation()
       time.sleep(fh_env._timeStep)
