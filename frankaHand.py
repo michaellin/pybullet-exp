@@ -32,21 +32,22 @@ class FrankaHand:
     # set mass of base body to 0 so it is fixed to the world (-1 is index for # base)
     p.changeDynamics(self.gripperUid, -1, mass = 0.) 
 
-    p.resetJointState(self.gripperUid, self.leftFingerIndex, 0)
+    # reset fingers to original position
     p.setJointMotorControl2(self.gripperUid,
                             self.leftFingerIndex,
                             p.POSITION_CONTROL,
-                            targetPosition=0.04,
+                            targetPosition=0.,
                             force=self.maxForce)
 
-    p.resetJointState(self.gripperUid, self.rightFingerIndex, 0)
+    # for gear constraint right finger must be in position control with no force limit
     p.setJointMotorControl2(self.gripperUid,
                             self.rightFingerIndex,
                             p.POSITION_CONTROL,
-                            targetPosition=0.04,
-                            force=self.maxForce)
+                            targetPosition=0.,
+                            force=0)
 
-    # create the gearing contraint
+    # create the gearing contraint. Make right finger
+    # child of left finger.
     c = p.createConstraint(self.gripperUid,
                            self.leftFingerIndex,
                            self.gripperUid,
@@ -56,9 +57,6 @@ class FrankaHand:
                            parentFramePosition=[0, 0, 0],
                            childFramePosition=[0, 0, 0])
     p.changeConstraint(c, gearRatio=-1, maxForce=10000)
-
-    #self.trayUid = p.loadURDF(os.path.join(self.urdfRootPath, "tray/tray.urdf"), 0.640000,
-    #                          0.075000, -0.190000, 0.000000, 0.000000, 1.000000, 0.000000)
 
 
   def applyAction(self, motorCommand):
@@ -71,11 +69,13 @@ class FrankaHand:
 
 if __name__ == "__main__":
   p.connect(p.GUI)
+  urdfRoot=pybullet_data.getDataPath()
+  p.loadURDF(os.path.join(urdfRoot, "plane.urdf"), 0, 0, -2)
   h = FrankaHand()
   stepCount = 0
-  while (stepCount < 100000):
+  p.setRealTimeSimulation(1)
+  while (1):
       fingerPos = 0.02*(np.sin(2*np.pi*stepCount/100)+1)
-      #h.applyAction([fingerPos]*2)
+      h.applyAction(fingerPos)
       stepCount += 1
-      p.stepSimulation()
       time.sleep(h.timeStep)
