@@ -5,12 +5,78 @@ in the pyBullet examples. -->
 <sdf version="1.6">
   <world name="default">
     <model name="panda">
+      <link name="panda_zbase">
+        <pose frame="">0 0 0 0 -0 0</pose>
+        <inertial>
+          <pose frame="">0 0 0.0 0 -0 0</pose>
+          <mass>0.0</mass>
+          <inertia>
+            <ixx>0</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0</iyy>
+            <iyz>0</iyz>
+            <izz>0</izz>
+          </inertia>
+        </inertial>
+        <visual name="panda_zbase_visual">
+          <pose frame="">0 0 0.25 0 -0 0</pose>
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.5</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1 0 0 1</ambient>
+            <diffuse>0.1 0.1 0.1 1.0</diffuse>
+            <specular>0.4 0.4 0.4 1</specular>
+            <emissive>0 0 0 0</emissive>
+          </material>
+        </visual>
+        <collision name="panda_hand_collision">
+          <pose frame="">0 0 0 0 1.57079632679 0</pose>
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.5</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+      <link name="panda_xbase">
+        <pose frame="">0.05 0 0.1 1.57079632679 0 0</pose>
+        <inertial>
+          <pose frame="">0 0 0.0 0 -0 0</pose>
+          <mass>10.0</mass>
+          <inertia>
+            <ixx>0</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0</iyy>
+            <iyz>0</iyz>
+            <izz>0</izz>
+          </inertia>
+        </inertial>
+        <visual name="panda_xbase_visual">
+          <pose frame="">0 0 0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.01 0.01 0.4</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1 0 0 1</ambient>
+            <diffuse>0.1 0.1 0.1 1.0</diffuse>
+            <specular>0.4 0.4 0.4 1</specular>
+            <emissive>0 0 0 0</emissive>
+          </material>
+        </visual>
+      </link>
       <link name="panda_hand">
-        <pose frame="">0.05 0 0.1 0 0 0</pose>
+        <pose frame="">0.1 0 0.1 0 0 0</pose>
         <inertial>
           <pose frame="">0 0 0.04 0 0 0</pose>
           <!-- <mass>0.81</mass> -->
-          <mass>0.</mass>
+          <mass>0.81</mass>
           <inertia>
             <ixx>0.2</ixx>
             <ixy>0</ixy>
@@ -46,7 +112,7 @@ in the pyBullet examples. -->
         </visual>
       </link>
       <link name="panda_leftfinger">
-        <pose frame="">0.1016 0 0.1 0 1.57 0</pose>
+        <pose frame="">0.1516 0 0.1 0 1.57079632679 0</pose>
         <inertial>
           <pose frame="">0 0.01 0.02 0 0 0</pose>
           <mass>0.1</mass>
@@ -78,14 +144,14 @@ in the pyBullet examples. -->
           </geometry>
           <material>
             <ambient>1 0 0 1</ambient>
-            <diffuse>0.8 0.8 0.8 1.0</diffuse>
+            <diffuse>0.2 0.2 0.2 1.0</diffuse>
             <specular>0.4 0.4 0.4 1</specular>
             <emissive>0 0 0 0</emissive>
           </material>
         </visual>
       </link>
       <link name="panda_rightfinger">
-        <pose frame="">0.1016 0 0.1 0 1.57 0</pose>
+        <pose frame="">0.1516 0 0.1 0 1.57079632679 0</pose>
         <inertial>
           <pose frame="">0 -0.01 0.02 0 0 0</pose>
           <mass>0.1</mass>
@@ -123,6 +189,28 @@ in the pyBullet examples. -->
           </material>
         </visual>
       </link>
+      <joint name="panda_xbase_zbase" type="fixed">
+        <child>panda_xbase</child>
+        <parent>panda_zbase</parent>
+      </joint>
+      <joint name="panda_hand_xbase" type="prismatic">
+        <child>panda_hand</child>
+        <parent>panda_xbase</parent>
+        <axis>
+          <xyz>0 1 0</xyz>
+          <limit>
+            <lower>-0.2</lower>
+            <upper>0.2</upper>
+            <effort>1000</effort>
+            <velocity>5</velocity>
+          </limit>
+          <dynamics>
+            <damping>0.3</damping>
+            <friction>0.1</friction>
+          </dynamics>
+          <use_parent_model_frame>1</use_parent_model_frame>
+        </axis>
+      </joint>
       <joint name="panda_finger_joint1" type="prismatic">
         <child>panda_leftfinger</child>
         <parent>panda_hand</parent>
@@ -131,7 +219,7 @@ in the pyBullet examples. -->
           <limit>
             <lower>0.0</lower>
             <upper>0.04</upper>
-            <effort>20</effort>
+            <effort>200</effort>
             <velocity>0.2</velocity>
           </limit>
           <dynamics>
@@ -151,7 +239,7 @@ in the pyBullet examples. -->
           <limit>
             <lower>0.0</lower>
             <upper>0.04</upper>
-            <effort>20</effort>
+            <effort>200</effort>
             <velocity>0.2</velocity>
           </limit>
           <dynamics>
