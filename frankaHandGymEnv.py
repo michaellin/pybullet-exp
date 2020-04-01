@@ -10,23 +10,20 @@ from frankaHand import FrankaHand
 class FrankaHandGymEnv(gym.Env):
   metadata = {'render.modes': ['human', 'rgb_array'], 'video.frames_per_second': 50}
 
-  def __init__(self,
-               urdfRoot=pybullet_data.getDataPath(),
-               actionRepeat=1,
-               isEnableSelfCollision=True,
-               maxSteps=1000):
+  def __init__(self, urdfRoot=pybullet_data.getDataPath(), performGraspFunc=None):
     self._timeStep = 1. / 240.
     self._urdfRoot = urdfRoot
-    self._actionRepeat = actionRepeat
-    self._isEnableSelfCollision = isEnableSelfCollision
-    self._envStepCounter = 0
-    self._maxSteps = maxSteps
+    self._performGrasp = performGraspFunc
 
     # camera parameters
     self._camDist = 0.25
     self._camYaw = -90
     self._camPitch = -89
     self._camTargetPosition = [0.1, 0., 0.]
+
+    # experiment state variables
+    self.total_attempts = 0
+    self.total_success = 0
 
     self._p = p
     p.connect(p.GUI)
@@ -66,11 +63,14 @@ class FrankaHandGymEnv(gym.Env):
   def placeRandBlock(self):
     # randomly generate a 3d pose of the block to grasp
     # limit is at xpos = 0.215, center is xpos = 0.195
-    xpos = 0.195 + 0.035 * (random.random()-0.5)
+    xpos = 0.198 + 0.035 * (random.random()-0.5)
     ypos = 0 + 0.056 * (random.random()-0.5)
     ang = 3.14 * 0.5 + 3.1415925438 * random.random()
+    #xpos = 0.195 
+    #ypos = -0.015
+    #ang = 3.14 * 0.5 + 3.1415925438 * random.random()
     orn = p.getQuaternionFromEuler([0, 1.57079632679, ang])
-    self.blockUid = p.loadURDF(os.path.join(self._urdfRoot, "block.urdf"), 
+    self.blockUid = p.loadURDF("block.urdf", 
                                 xpos, ypos, -0.0149,
                                 orn[0], orn[1], orn[2], orn[3])
 
@@ -101,48 +101,20 @@ class FrankaHandGymEnv(gym.Env):
     steps = int(round(sleepTime / self._timeStep))
     # step once first to place the gripper in place
     for i in range(steps):
+        self._gripper.step()
         p.stepSimulation()
         time.sleep(self._timeStep)
 
-  def step(self, action):
-    dv = 0.005
-    dx = action[0] * dv
-    realAction = [dx]
-    return realAction
+  def performGrasp(self):
+      return self._performGrasp(self)
+
 
 
 if __name__ == "__main__":
   stepCount = 0
-  closed = False
-  fh_env = FrankaHandGymEnv(maxSteps=10000)
-  total_attempts = 0
-  total_success = 0
+  fh_env = FrankaHandGymEnv()
   while (True):
-      total_attempts += 1
-      #fingerPos = 0.02*(np.sin(2*np.pi*stepCount/1000)+1)
-
-      #if (fingerPos > 0.02):
-      #    p.setJointMotorControl2(fh_env._gripper.gripperUid,
-      #                            1,
-      #                            p.TORQUE_CONTROL,
-      #                            force=2.)
-      #else:
-      #    p.setJointMotorControl2(fh_env._gripper.gripperUid,
-      #                            1,
-      #                            p.TORQUE_CONTROL,
-      #                            force=-2.)
-
-      #if (stepCount % 2) == 0:
-      #    fh_env._gripper.getFingerForce()
-      #p.setJointMotorControl2(fh_env._gripper.gripperUid,
-      #                        1,
-      #                        p.PD_CONTROL,
-      #                        targetPosition = fingerPos*20,
-      #                        targetVelocity = 1.0,
-      #                        force=1.,
-      #                        positionGain=20,
-      #                        velocityGain=0.1)
-
+      self.total_attempts += 1
 
       fh_env._gripper.applyAction(0)
       fh_env.sleepSim(1) 
@@ -151,7 +123,7 @@ if __name__ == "__main__":
       fh_env._gripper.stopLiftObject()
       fh_env.sleepSim(0.2) 
       if (fh_env.getBlockHeight() > -0.05):
-          total_success += 1
-      print("lifted {}% trials".format(100.0*total_success/total_attempts))
+          self.total_success += 1
+      print("lifted {}% trials".format(100.0*self.total_success/self.total_attempts))
       fh_env.sleepSim(1) 
       fh_env.resetExp()
