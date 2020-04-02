@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<robot name="mug">
+  <link name="mug_base_link">
+    <contact>
+      <lateral_friction value="1.0"/>
+      <spinning_friction value=".001"/>
+    </contact>
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0.0405 0"/>
+      <mass value="0.35"/>
+      <inertia ixx="0.000363854" ixy="0" ixz="0" iyy="0.000074375" iyz="0" izz="0.000363854"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
+      <geometry>
+        <!--<box size="0.10 0.018 0.018"/>-->
+        <mesh filename="data/mug3.obj"/>
+      </geometry>
+      <material name="mugmat">
+        <color rgba="0.7 0.1 0.1 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
+      <geometry>
+        <!--<box size="0.10 0.018 0.018"/>-->
+        <mesh filename="data/mug3.obj"/>
+      </geometry>
+    </collision>
+  </link>
+</robot>

@@ -10,7 +10,6 @@ class lowPassFilter(object):
 
     self.input = np.zeros(norder + 1)
     self.output = np.zeros(norder + 1)
-    print("b {}, a {}".format(self.b, self.a))
 
   def filter(self, x):
     # shift input by one

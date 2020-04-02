@@ -1,5 +1,6 @@
 import pybullet_data
 import numpy as np
+from scipy.spatial.transform import Rotation as R
 import pybullet as p
 import gym
 import os
@@ -63,24 +64,40 @@ class FrankaHandGymEnv(gym.Env):
   def placeRandBlock(self):
     # randomly generate a 3d pose of the block to grasp
     # limit is at xpos = 0.215, center is xpos = 0.195
-    xpos = 0.198 + 0.035 * (random.random()-0.5)
-    ypos = 0 + 0.056 * (random.random()-0.5)
-    ang = 3.14 * 0.5 + 3.1415925438 * random.random()
+    #xpos = 0.198 + 0.035 * (random.random()-0.5)
+    #ypos = 0 + 0.056 * (random.random()-0.5)
+    #ang = 3.14 * 0.5 + 3.1415925438 * random.random()
     #xpos = 0.195 
     #ypos = -0.015
     #ang = 3.14 * 0.5 + 3.1415925438 * random.random()
-    orn = p.getQuaternionFromEuler([0, 1.57079632679, ang])
-    self.blockUid = p.loadURDF("block.urdf", 
-                                xpos, ypos, -0.0149,
-                                orn[0], orn[1], orn[2], orn[3])
+    #orn = p.getQuaternionFromEuler([0, 1.57079632679, ang])
+    #self.blockUid = p.loadURDF("data/block.urdf", 
+    #                            xpos, ypos, -0.0149,
+    #                            orn[0], orn[1], orn[2], orn[3])
+
+    #xpos = 0.195 + 0.055 + 0.025 * (random.random()-0.5)
+    xpos = 0.195 + 0.06 + 0.025 * (random.random()-0.5)
+    #ypos = 0 + 0.056 * (random.random()-0.5)
+    ypos = 0+ 0.05 * (random.random()-0.5)
+    q = R.from_euler('xyz', [90, 0, 180], degrees=True).as_quat()
+    #self.mugUid = p.loadURDF("data/mug.urdf", xpos, ypos, -0.18,
+    #                    q[0], q[1], q[2], q[3])
+    self.mugUid = p.loadSDF("data/mug.sdf",
+                        useMaximalCoordinates = False)[0]
+
+    # set the position of the base to be on the table
+    p.resetBasePositionAndOrientation(self.mugUid, [xpos, ypos, -0.15], q)
+
 
   def getBlockHeight(self):
-      pose = p.getBasePositionAndOrientation(self.blockUid)
+      #pose = p.getBasePositionAndOrientation(self.blockUid)
+      pose = p.getBasePositionAndOrientation(self.mugUid)
       return pose[0][2]
   
   def resetExp(self):
     # remove the block
-    p.removeBody(self.blockUid)
+    #p.removeBody(self.blockUid)
+    p.removeBody(self.mugUid)
 
     # reset gripper position
     self._gripper.resetPose()
@@ -90,7 +107,7 @@ class FrankaHandGymEnv(gym.Env):
 
     self.placeRandBlock()
 
-    self.sleepSim(1)
+    self.sleepSim(2)
 
 
   def __del__(self):

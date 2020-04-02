@@ -54,10 +54,6 @@ class FrankaHand:
     p.resetBasePositionAndOrientation(self.gripperUid, self.initPos,
                                       [0.000000, 0.000000, 0.000000, 1.000000])
 
-    # reset fingers to original position
-    self.setJointControl(qDes = 0.04,
-                          maxForce = self.gripperMaxForce)
-
     # disable position control to use explicit position control torque Torque control
     p.setJointMotorControl2(self.gripperUid,
                             self.leftFingerIndex,
@@ -72,18 +68,6 @@ class FrankaHand:
                             targetPosition=0.00,
                             force=0.0)
 
-    # disable position control to use velocity control
-    p.setJointMotorControl2(self.gripperUid, self.baseIndex,
-                            p.POSITION_CONTROL,
-                            targetPosition=0.0,
-                            force=0.0)
-
-    # move the prismatic wrist to 0
-    p.setJointMotorControl2(self.gripperUid, self.wristIndex,
-                            controlMode=p.POSITION_CONTROL, 
-                            targetPosition = 0,
-                            force=100.0)
-
     # create the gearing contraint. Make right finger
     # child of left finger.
     c = p.createConstraint(self.gripperUid,
@@ -96,8 +80,10 @@ class FrankaHand:
                            childFramePosition=[0, 0, 0])
     p.changeConstraint(c, gearRatio=-1, maxForce=10000)
 
-    self.enableSensors()
+    # command all joint to their default pose
+    self.resetPose()
 
+    self.enableSensors()
 
 
   def enableSensors(self):
@@ -174,7 +160,7 @@ class FrankaHand:
     p.setJointMotorControl2(self.gripperUid,
                             self.baseIndex,
                             p.POSITION_CONTROL,
-                            targetPosition=0.0,
+                            targetPosition=-0.05,
                             force=500.0)
 
     # move wrist prismatic back to 0

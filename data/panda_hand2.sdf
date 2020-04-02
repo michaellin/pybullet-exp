@@ -34,7 +34,7 @@ in the pyBullet examples. -->
           </material>
         </visual>
         <collision name="panda_hand_collision">
-          <pose frame="">0 0 0 0 1.57079632679 0</pose>
+          <pose frame="">0 0 0.25 0 -0 0</pose>
           <geometry>
             <box>
               <size>0.1 0.1 0.5</size>
@@ -272,7 +272,7 @@ in the pyBullet examples. -->
         <axis>
           <xyz>0 1 0</xyz>
           <limit>
-            <lower>0.0</lower>
+            <lower>-0.5</lower>
             <upper>1.0</upper>
             <effort>1000</effort>
             <velocity>5</velocity>

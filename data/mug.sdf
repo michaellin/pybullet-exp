@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!--This file contains the SDF model of a Franka Panda hand.
+It has been produced using gazebo sdf script from its urdf included
+in the pyBullet examples. -->
+<sdf version="1.6">
+  <world name="default">
+    <model name="mug">
+      <link name="mug_base_link">
+        <pose frame="">0 0 0 0 0 0</pose>
+        <inertial>
+          <pose frame="">0 0.04 0 0 0 0</pose>
+          <mass>0.35</mass>
+          <inertia>
+            <ixx>0.000363854</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.000074375</iyy>
+            <iyz>0</iyz>
+            <izz>0.000363854</izz>
+          </inertia>
+        </inertial>
+        <visual name="mug_visual">
+          <pose frame="">0 0 0 0 0 0</pose>
+          <geometry>
+            <mesh>
+              <scale>1 1 1</scale>
+              <uri>data/mug4.obj</uri>
+            </mesh>
+          </geometry>
+          <material>
+            <ambient>0.5 0 0 1</ambient>
+            <diffuse>0.5 0.0 0.0 1.0</diffuse>
+            <specular>0.3 0.3 0.3 1</specular>
+            <emissive>0 0 0 0</emissive>
+          </material>
+        </visual>
+        <collision name="mug_collision">
+          <pose frame="">0 0 0 0 0 0</pose>
+          <geometry>
+            <mesh>
+              <scale>1 1 1</scale>
+              <uri>data/mug4_collision.obj</uri>
+            </mesh>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+  </world>
+</sdf>

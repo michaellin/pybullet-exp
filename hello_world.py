@@ -39,9 +39,7 @@ def contactFirstGrasp(self):
               done = True
           
           #print("wirst force {}".format(self._gripper.getWristForce()))
-          #print("L finger force {}".format(leftFingerF[1]))
-          #print("R finger force {}".format(rightFingerF[1]))
-          print("L {} R {}".format(leftFingerF[1],rightFingerF[1]))
+          #print("L {} R {}".format(leftFingerF[1],rightFingerF[1]))
           if not done:
               if (abs(leftFingerF[1]) > 0.03) is not \
                 (abs(rightFingerF[1]) > 0.03):
