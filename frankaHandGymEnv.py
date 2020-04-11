@@ -76,9 +76,9 @@ class FrankaHandGymEnv(gym.Env):
     #                            orn[0], orn[1], orn[2], orn[3])
 
     #xpos = 0.195 + 0.055 + 0.025 * (random.random()-0.5)
-    xpos = 0.195 + 0.06 + 0.025 * (random.random()-0.5)
+    xpos = 0.195 + 0.065 + 0.025 * (random.random()-0.5)
     #ypos = 0 + 0.056 * (random.random()-0.5)
-    ypos = 0+ 0.05 * (random.random()-0.5)
+    ypos = 0+ 0.055 * (random.random()-0.5)
     q = R.from_euler('xyz', [90, 0, 180], degrees=True).as_quat()
     #self.mugUid = p.loadURDF("data/mug.urdf", xpos, ypos, -0.18,
     #                    q[0], q[1], q[2], q[3])

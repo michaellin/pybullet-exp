@@ -35,8 +35,8 @@ class FrankaHand:
     # set default controller parameters
     self.gripperQDes = 0.04
     self.gripperMaxForce = 100.
-    self.gripperPosGain = 2500.0
-    self.gripperVelGain = 1.0
+    self.gripperPosGain = 1500.0
+    self.gripperVelGain = 10.0
 
     # filter for wrist force sensor
     # 2nd order butterworth at fc=20 Hz and fs=240 Hz
