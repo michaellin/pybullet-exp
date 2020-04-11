@@ -7,8 +7,8 @@ import numpy as np
 
 def main():
 
-  env = FrankaHandGymEnv(performGraspFunc = contactFirstGrasp)
-  #env = FrankaHandGymEnv(performGraspFunc = simpleGrasp)
+  #env = FrankaHandGymEnv(performGraspFunc = contactFirstGrasp)
+  env = FrankaHandGymEnv(performGraspFunc = simpleGrasp)
   env.fileCounter = 0
   while (True):
     total_attempts, total_success = env.performGrasp()
@@ -17,15 +17,18 @@ def main():
 
 def simpleGrasp(self):
   done = False
+  counter = 0
   while not done:
+    counter += 1
     self._gripper.applyAction(0, maxForce=0.25)
     self._gripper.step()
     p.stepSimulation()
     time.sleep(self._timeStep)
     leftFingerF = self._gripper.leftFingerF
     rightFingerF = self._gripper.rightFingerF
-    if (abs(leftFingerF[1]) > 0.03) or \
-      (abs(rightFingerF[1]) > 0.03):
+    if ((abs(leftFingerF[1]) > 0.03) or \
+      (abs(rightFingerF[1]) > 0.03) or \
+      counter > 5*240):
       self._gripper.applyAction(0, maxForce=100.)
       done = True
   self.sleepSim(1) 

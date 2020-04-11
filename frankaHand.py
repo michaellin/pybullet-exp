@@ -42,13 +42,14 @@ class FrankaHand:
     # 2nd order butterworth at fc=20 Hz and fs=240 Hz
     self.filt = lowPassFilter(2, 20, 240)
 
+    # initialize finger forces
+    self.leftFingerF = np.zeros(6)
+    self.rightFingerF = np.zeros(6)
+
     self.reset()
 
   def reset(self):
-    temp = p.loadSDF(os.path.join(self.urdfRootPath, "franka_panda/panda_hand2.sdf"),
-                        useMaximalCoordinates = False)
-    self.gripperUid = temp[0]
-
+    self.gripperUid = p.loadURDF(os.path.join(self.urdfRootPath, "franka_panda/panda_hand2.urdf"))
 
     # set the position of the base to be on the table
     p.resetBasePositionAndOrientation(self.gripperUid, self.initPos,
@@ -196,7 +197,6 @@ class FrankaHand:
     
     self.getFingerForces()
     self.wristForce = self.filt.filter(-self.leftFingerF[1]-self.rightFingerF[1])
-    #self.wristForce = self.getWristForce()
 
 if __name__ == "__main__":
   p.connect(p.GUI)
