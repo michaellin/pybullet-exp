@@ -7,8 +7,8 @@ import numpy as np
 
 def main():
 
-  #env = FrankaHandGymEnv(performGraspFunc = contactFirstGrasp)
-  env = FrankaHandGymEnv(performGraspFunc = simpleGrasp)
+  env = FrankaHandGymEnv(performGraspFunc = contactFirstGrasp)
+  #env = FrankaHandGymEnv(performGraspFunc = simpleGrasp)
   env.fileCounter = 0
   while (True):
     total_attempts, total_success = env.performGrasp()

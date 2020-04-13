@@ -169,7 +169,7 @@
     <parent link="panda_xbase"/>
     <child link="panda_hand"/>
     <origin rpy="1.57079632679 0 1.57079632679" xyz="0.05 0. 0."/>
-    <axis xyz="0 0 1"/>
+    <axis xyz="0 1 0"/>
     <limit effort="1000" lower="-0.2" upper="0.2" velocity="5.0"/>
   </joint>
   <joint name="panda_finger_left" type="prismatic">
@@ -184,7 +184,6 @@
     <parent link="panda_leftfinger"/>
     <child link="panda_leftfingerpad"/>
     <origin rpy="0 0 0" xyz="0 0 0.045"/>
-    <axis xyz="0 0 1"/>
   </joint>
   <joint name="panda_finger_right" type="prismatic">
     <parent link="panda_hand"/>
@@ -198,6 +197,5 @@
     <parent link="panda_rightfinger"/>
     <child link="panda_rightfingerpad"/>
     <origin rpy="0 0 0" xyz="0 0 0.045"/>
-    <axis xyz="0 0 1"/>
   </joint>
 </robot>
