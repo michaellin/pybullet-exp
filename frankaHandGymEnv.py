@@ -8,11 +8,13 @@ import time
 import random
 from frankaHand import FrankaHand
 
+from utils import sleeper
+
 class FrankaHandGymEnv(gym.Env):
   metadata = {'render.modes': ['human', 'rgb_array'], 'video.frames_per_second': 50}
 
   def __init__(self, urdfRoot=pybullet_data.getDataPath(), performGraspFunc=None):
-    self._timeStep = 1. / 240.
+    self._timeStep = 1. / 1000.
     self._urdfRoot = urdfRoot
     self._performGrasp = performGraspFunc
 
@@ -27,6 +29,7 @@ class FrankaHandGymEnv(gym.Env):
     self.total_success = 0
 
     self._p = p
+    self.sleeper = sleeper(self._p, self._timeStep)
     p.connect(p.GUI)
     self.reset()
 
@@ -55,11 +58,11 @@ class FrankaHandGymEnv(gym.Env):
                       initPos = [0.00000, 0.0000, -0.2], timeStep = self._timeStep)
 
     # step once first to place the gripper in place
-    self.sleepSim(1)
+    self.sleeper.sleepSim(1, self._gripper.step)
 
     self.placeRandBlock()
 
-    self.sleepSim(1)
+    self.sleeper.sleepSim(1, self._gripper.step)
 
   def placeRandBlock(self):
     # randomly generate a 3d pose of the block to grasp
@@ -75,10 +78,10 @@ class FrankaHandGymEnv(gym.Env):
     #                            xpos, ypos, -0.0149,
     #                            orn[0], orn[1], orn[2], orn[3])
 
-    #xpos = 0.195 + 0.055 + 0.025 * (random.random()-0.5)
-    xpos = 0.195 + 0.065 + 0.025 * (random.random()-0.5)
-    #ypos = 0 + 0.056 * (random.random()-0.5)
-    ypos = 0+ 0.055 * (random.random()-0.5)
+    xpos = 0.195 + 0.065
+    #xpos = 0.195 + 0.065 + 0.025 * (random.random()-0.5)
+    ypos = 0.02
+    #ypos = 0+ 0.055 * (random.random()-0.5)
     q = R.from_euler('xyz', [90, 0, 180], degrees=True).as_quat()
     #self.mugUid = p.loadURDF("data/mug.urdf", xpos, ypos, -0.18,
     #                    q[0], q[1], q[2], q[3])
@@ -103,27 +106,27 @@ class FrankaHandGymEnv(gym.Env):
     self._gripper.resetPose()
 
     # step once first to place the gripper in place
-    self.sleepSim(1)
+    self.sleeper.sleepSim(1, self._gripper.step)
 
     self.placeRandBlock()
 
-    self.sleepSim(2)
+    self.sleeper.sleepSim(1, self._gripper.step)
 
 
   def __del__(self):
     p.disconnect()
 
-  def sleepSim(self, sleepTime):
-    """ Step through the simluation for some amount of time. """
-    steps = int(round(sleepTime / self._timeStep))
-    # step once first to place the gripper in place
-    for i in range(steps):
-        self._gripper.step()
-        p.stepSimulation()
-        time.sleep(self._timeStep)
+  #def sleepSim(self, sleepTime):
+  #  """ Step through the simluation for some amount of time. """
+  #  steps = int(round(sleepTime / self._timeStep))
+  #  # step once first to place the gripper in place
+  #  for i in range(steps):
+  #      self._gripper.step()
+  #      p.stepSimulation()
+  #      time.sleep(self._timeStep)
 
-  def performGrasp(self):
-      return self._performGrasp(self)
+  def performGrasp(self, args):
+      return self._performGrasp(self, args)
 
 
 
