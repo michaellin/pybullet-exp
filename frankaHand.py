@@ -45,7 +45,6 @@ class FrankaHand:
                                       [0.000000, 0.000000, 0.000000, 1.000000])
 
 
-
     # finger tip jacobian
     Rskew = np.zeros((3,3))
     Rskew[2,0] = 0.007
@@ -58,7 +57,10 @@ class FrankaHand:
 
     ### SETUP CONTROLS
     # create pd Controller instance for gripper
-    self.gripperPdController = PDControllerExplicit(self._p)
+    self.fingerPDController = PDControllerExplicit(self._p,
+                                                  self.gripperUid,
+                                                  self.rightFingerIndex)
+
     # set default controller parameters
     self.gripperQDes = 0.04
     self.gripperMaxForce = 100.
@@ -93,10 +95,27 @@ class FrankaHand:
                            jointAxis=[0, 1, 0],
                            parentFramePosition=[0, 0, 0],
                            childFramePosition=[0, 0, 0])
-    p.changeConstraint(c, gearRatio=-1, maxForce=10000)
+    p.changeConstraint(c, gearRatio=-1, maxForce=100000)
+
+
+    # initialize wrist PD controller
+    self.wristXPDController = PDControllerExplicit(self._p,
+                                                  self.gripperUid,
+                                                  self.wristXIndex)
+    self.wristYPDController = PDControllerExplicit(self._p,
+                                                  self.gripperUid,
+                                                  self.wristYIndex)
+    self.wristWPDController = PDControllerExplicit(self._p,
+                                                  self.gripperUid,
+                                                  self.wristWIndex)
+    self.wristPosGain = 10.0
+    self.wristVelGain = 0.3
+    self.wristMaxForce = 50.
 
     # command all joint to their default pose
     self.resetPose()
+
+    # load force torque sensors
     self.rightFT = FTSensor(self.gripperUid, self.rightFingerPadIndex)
     self.leftFT = FTSensor(self.gripperUid, self.leftFingerPadIndex)
 
@@ -105,27 +124,73 @@ class FrankaHand:
 
     self.rightFT.zeroSensorBias()
     self.leftFT.zeroSensorBias()
-    print("got bias")
 
-  def enableSensors(self):
-    """ Enables Force Torque reading from pinger pads and wrist joint. """
-    p.enableJointForceTorqueSensor(self.gripperUid, self.rightFingerPadIndex)
-    p.enableJointForceTorqueSensor(self.gripperUid, self.leftFingerPadIndex)
-    p.enableJointForceTorqueSensor(self.gripperUid, self.wristXIndex)
-    p.enableJointForceTorqueSensor(self.gripperUid, self.wristYIndex)
-    p.enableJointForceTorqueSensor(self.gripperUid, self.wristWIndex)
+    self.currMode = 0
 
-  def getFingerForces(self):
-    """ Returns the force torque value defined at the fixed joint between
-        finger pad and finger link.
-    """
-    self.rightFingerF = p.getJointState(self.gripperUid, self.rightFingerPadIndex)[2]
-    self.leftFingerF = p.getJointState(self.gripperUid, self.leftFingerPadIndex)[2]
-    return self.rightFingerF[2], self.leftFingerF[2]
 
   def getWristForce(self):
     wristForce = p.getJointState(self.gripperUid, self.wristXIndex)[2][0]
     return self.filt.filter(wristForce)
+
+
+  def changeControlMode(self, mode):
+    if (mode != self.currMode):
+      # torque control is 1
+      if (mode == 0):
+        # turn off position control on wrist joints
+        p.setJointMotorControl2(self.gripperUid,
+                                self.wristXIndex,
+                                p.POSITION_CONTROL,
+                                force=10.0)
+
+        p.setJointMotorControl2(self.gripperUid,
+                                self.wristYIndex,
+                                p.POSITION_CONTROL,
+                                force=10.0)
+
+        p.setJointMotorControl2(self.gripperUid,
+                                self.wristWIndex,
+                                p.POSITION_CONTROL,
+                                force=10.0)
+      elif (mode == 1):
+        # get current reference pose
+        self.desPos = [x[0] for x in p.getJointStates(self.gripperUid,
+                                [self.wristXIndex,
+                                self.wristYIndex,
+                                self.wristWIndex])]
+
+        # turn off position control on wrist joints
+        p.setJointMotorControl2(self.gripperUid,
+                                self.wristXIndex,
+                                p.POSITION_CONTROL,
+                                targetPosition=0.0,
+                                force=0.0)
+
+        p.setJointMotorControl2(self.gripperUid,
+                                self.wristYIndex,
+                                p.POSITION_CONTROL,
+                                targetPosition=0.0,
+                                force=0.0)
+
+        p.setJointMotorControl2(self.gripperUid,
+                                self.wristWIndex,
+                                p.POSITION_CONTROL,
+                                targetPosition=0.0,
+                                force=0.0)
+    self.currMode = mode
+
+  def makeContactControl(self):
+    self.changeControlMode(0)
+    dxDes = 0.01
+    wristPos = p.getJointState(self.gripperUid, self.wristXIndex)[0]
+    wristPosDes = wristPos + 0.02*dxDes
+
+    # move the prismatic wrist to new desired position
+    p.setJointMotorControl2(self.gripperUid, self.wristXIndex,
+                            controlMode=p.POSITION_CONTROL, 
+                            targetPosition = wristPosDes,
+                            targetVelocity = 0.,
+                            force=100.0)
 
 
   def stepAdmittanceControl(self):
@@ -138,16 +203,47 @@ class FrankaHand:
                             controlMode=p.POSITION_CONTROL, 
                             targetPosition = wristPosDes,
                             targetVelocity = 0.,
-                            force=100.0)
+                            force=0.5)
       
 
   def stepFingerComplianceControl(self):
+    self.changeControlMode(1)
+
+    u = np.zeros(3)
+    # perform explicit position control
+    u[0] = self.wristXPDController.computePD( self.desPos[0],
+                                              0.,
+                                              self.wristPosGain,
+                                              self.wristVelGain,
+                                              self.wristMaxForce)
+
+    u[1] = self.wristYPDController.computePD( self.desPos[1],
+                                              0.,
+                                              self.wristPosGain,
+                                              self.wristVelGain,
+                                              self.wristMaxForce)
+
+    u[2] = self.wristWPDController.computePD( self.desPos[2],
+                                              0.,
+                                              self.wristPosGain,
+                                              self.wristVelGain,
+                                              self.wristMaxForce)
+
+    p.setJointMotorControlArray(self.gripperUid, 
+                            [self.wristXIndex, 
+                            self.wristYIndex,
+                            self.wristWIndex],
+                            controlMode=p.TORQUE_CONTROL, 
+                            forces=u)
+
+
     # get finger force vector (6x1)
-    ffl = self.rightFingerF
-    ffr = self.leftFingerF
+    ffl = self.leftFT.getForces()
+    ffr = self.rightFT.getForces()
 
     # set force desired
     f_des = np.zeros(len(ffl))
+    f_des[1] = 0.2
 
     # get jacobian to joints
     fingerPos = p.getJointState(self.gripperUid, self.rightFingerIndex)[0]
@@ -165,25 +261,24 @@ class FrankaHand:
     Jql[2,3] = -fingerPos
     Jql[2,4] = 1.
 
-    fl_err = f_des - ffl
-    fr_err = f_des - ffr
-    Kl = np.eye(6)
-    Kl[1,1] = 0.1 
-    Kl[3,3] = 5
-    Kr = np.eye(6)
-    Kr[1,1] = 0.1 
-    Kr[3,3] = 5 
+    fl_err = -(f_des - ffl)
+    fr_err = -(f_des - ffr)
+    Kl = 0.001*np.eye(6)
+    Kl[3,3] = -10.
+    Kr = 0.0001*np.eye(6)
     ul = Jql.dot(Kl.dot(self.Jtip.dot(fl_err)))
     ur = Jqr.dot(Kr.dot(self.Jtip.dot(fr_err)))
-    u = ur + ul
 
+    print(self.desPos[2])
+    self.desPos -= ul
     # move the prismatic wrist to new desired position
-    p.setJointMotorControlArray(self.gripperUid, 
-                            [self.wristXIndex, 
-                            self.wristYIndex,
-                            self.wristWIndex],
-                            controlMode=p.TORQUE_CONTROL, 
-                            forces=[u[0], u[1], u[2]])
+    #p.setJointMotorControlArray(self.gripperUid, 
+    #                        [self.wristXIndex, 
+    #                        self.wristYIndex,
+    #                        self.wristWIndex],
+    #                        controlMode=p.TORQUE_CONTROL, 
+    #                        forces=u)
+
 
   def applyAction(self, motorCommand, maxForce=None):
     if (not maxForce): maxForce = self.gripperMaxForce
@@ -242,24 +337,6 @@ class FrankaHand:
                       self.wristWIndex,
                       targetValue=0)
 
-    # turn off position control on wrist joints
-    p.setJointMotorControl2(self.gripperUid,
-                            self.wristXIndex,
-                            p.POSITION_CONTROL,
-                            targetPosition=0.0,
-                            force=0.0)
-
-    p.setJointMotorControl2(self.gripperUid,
-                            self.wristYIndex,
-                            p.POSITION_CONTROL,
-                            targetPosition=0.0,
-                            force=0.0)
-
-    p.setJointMotorControl2(self.gripperUid,
-                            self.wristWIndex,
-                            p.POSITION_CONTROL,
-                            targetPosition=0.0,
-                            force=0.0)
 
     # reset fingers to home position
     self.setJointControl(qDes = 0.04,
@@ -271,25 +348,22 @@ class FrankaHand:
 
   def step(self):
     # perform explicit position control
-    force = self.gripperPdController.computePD(self.gripperUid,
-                                                self.rightFingerIndex,
-                                                self.gripperQDes,
-                                                0.,
-                                                self.gripperPosGain,
-                                                self.gripperVelGain,
-                                                self.gripperMaxForce)
+    force = self.fingerPDController.computePD( self.gripperQDes,
+                                              0.,
+                                              self.gripperPosGain,
+                                              self.gripperVelGain,
+                                              self.gripperMaxForce)
     
     p.setJointMotorControl2(self.gripperUid,
                             self.rightFingerIndex,
                             p.TORQUE_CONTROL,
                             force=force)
 
-    
-    self.getFingerForces()
-    self.wristForce = self.filt.filter(-self.rightFingerF[1]-self.leftFingerF[1])
 
     self.leftFT.step()
     self.rightFT.step()
+
+    #self.wristForce = self.filt.filter(-self.rightFT.getForces()[1]-self.leftFT.getForces()[1])
 
   def loadDebugRefFrames(self):
     p.addUserDebugText("rightpad", [0,0,0.05],textColorRGB=[1,0,0],textSize=1.,
@@ -336,14 +410,22 @@ class FTSensor(object):
     p.enableJointForceTorqueSensor(self.gripperUid, self.sensorIndex)
 
 
-    self.lineId = p.addUserDebugLine([0,0,0],[0,0.1,0],[1,1,1], 
+    # initialize line to visualize FT
+    self.ftLineId = p.addUserDebugLine([0,0,0],[0,0.1,0],[0,0,0], 
+                        parentObjectUniqueId=self.gripperUid, 
+                        parentLinkIndex=self.sensorIndex)
+
+    # initialize line to visualize contact center of pressure
+    self.cpLineId = p.addUserDebugLine([0,0,0],[0,0.01,0],[1,0,0], 
                         parentObjectUniqueId=self.gripperUid, 
                         parentLinkIndex=self.sensorIndex)
 
     self.bias = np.zeros(6)
 
     self.contactState = False
+    self.contactStateCounter = 0
 
+    self.sensor_thickness = 0.00929   # sensor thickness in m
     # filter for wrist force sensor
     # 2nd order butterworth at fc=300 Hz and fs=1000 Hz
     #self.filt = lowPassFilter(2, 300, 1000, vecSize=6)
@@ -355,13 +437,51 @@ class FTSensor(object):
     return self.forces
 
 
-  def inContact(self, thresh=0.1):
+  def getCP(self):
+    """ Use f/t data and finger geometry to estimate the center of pressure through
+        intrinsic tactile sensing. 
+            r = h - alpha*f 
+            h = (f_hat x m_hat)* ||f||/||m||
+
+    Returns:
+      vec3: location of contact center of pressure in the finger pad ref frame.
+
+    """
+    # get force and moment data
+    f = self.forces[:3]
+    m = self.forces[:3]
+    f_mag = np.linalg.norm(f)
+    m_mag = np.linalg.norm(m)
+    # check that these are not zero
+    if (f_mag == 0 or m_mag == 0):
+      raise Exception("F/T data is not good for intrinsic tactile sensing.\
+                       f: {}, m: {}".format(f_mag, m_mag))
+    f_hat = f/f_mag
+    m_hat = m/m_mag
+    h = np.cross(f_hat, m_hat)*f_mag/m_mag
+    alpha = (h[1] - self.sensor_thickness)/f[1]
+    r = h - alpha*f
+    return r
+
+
+  def _getContactState(self, thresh=0.1):
     """ Return true or false depending on whether the sensor is in contact.
-    Only using force, not moments.
+        Only using force, not moments.
+
+    Returns:
+      bool: indicates whether sensor is in contact.
+
     """
     f_mag = np.linalg.norm(self.forces[:3])
-    return f_mag > thresh
+    in_contact  = f_mag > thresh
+    if in_contact:
+      self.contactStateCounter = min(self.contactStateCounter+1, 100)
+    #else:
+    #  self.contactStateCounter = max(self.contactStateCounter-1, 0)
+    return self.contactStateCounter > 50
 
+  def getContactState(self):
+    return self.contactState
 
   def zeroSensorBias(self):
     self.bias = self.getForces()
@@ -374,21 +494,38 @@ class FTSensor(object):
     p.addUserDebugLine([0,0,0],f_mag*f_unit,[0,0,0], 
                         parentObjectUniqueId=self.gripperUid, 
                         parentLinkIndex=self.sensorIndex,
-                        replaceItemUniqueId=self.lineId)
+                        replaceItemUniqueId=self.ftLineId)
+
+  def _displayCP(self):
+    """ Display the estimated center of pressure """
+    if (self._getContactState()):
+      r = self.getCP()
+      #r[1] = 0
+      p.addUserDebugLine(r,[0, 0.01, 0],[0,1,0], 
+                          parentObjectUniqueId=self.gripperUid, 
+                          parentLinkIndex=self.sensorIndex,
+                          replaceItemUniqueId=self.cpLineId)
+    else:
+      p.addUserDebugLine([0, 0, 0],[0, 0.01, 0],[1,0,0], 
+                          parentObjectUniqueId=self.gripperUid, 
+                          parentLinkIndex=self.sensorIndex,
+                          replaceItemUniqueId=self.cpLineId)
+    
 
   def step(self):
     self.getForces()
     self._displayForceVector()
-    currContactState = self.inContact() 
+    self._displayCP()
+    currContactState = self._getContactState()
     if (currContactState != self.contactState):
-      if self.inContact():
+      if currContactState:
         p.changeVisualShape(self.gripperUid,
                             self.sensorIndex,
-                            rgbaColor=[1,0,0,1])
+                            rgbaColor=[1,0,0,.1])
       else:
         p.changeVisualShape(self.gripperUid,
                             self.sensorIndex,
-                            rgbaColor=[0,1,0,1])
+                            rgbaColor=[0,1,0,.1])
     self.contactState = currContactState
     
 

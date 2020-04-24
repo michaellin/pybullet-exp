@@ -54,15 +54,15 @@ class FrankaHandGymEnv(gym.Env):
     p.setGravity(0, 0, -10)
 
     # instantiate the franka Gripper
-    self._gripper = FrankaHand(urdfRootPath = self._urdfRoot, 
+    self.gripper = FrankaHand(urdfRootPath = self._urdfRoot, 
                       initPos = [0.00000, 0.0000, -0.2], timeStep = self._timeStep)
 
     # step once first to place the gripper in place
-    self.sleeper.sleepSim(1, self._gripper.step)
+    self.sleeper.sleepSim(1, self.gripper.step)
 
     self.placeRandBlock()
 
-    self.sleeper.sleepSim(1, self._gripper.step)
+    self.sleeper.sleepSim(1, self.gripper.step)
 
   def placeRandBlock(self):
     # randomly generate a 3d pose of the block to grasp
@@ -103,14 +103,14 @@ class FrankaHandGymEnv(gym.Env):
     p.removeBody(self.mugUid)
 
     # reset gripper position
-    self._gripper.resetPose()
+    self.gripper.resetPose()
 
     # step once first to place the gripper in place
-    self.sleeper.sleepSim(1, self._gripper.step)
+    self.sleeper.sleepSim(1, self.gripper.step)
 
     self.placeRandBlock()
 
-    self.sleeper.sleepSim(1, self._gripper.step)
+    self.sleeper.sleepSim(1, self.gripper.step)
 
 
   def __del__(self):
@@ -121,7 +121,7 @@ class FrankaHandGymEnv(gym.Env):
   #  steps = int(round(sleepTime / self._timeStep))
   #  # step once first to place the gripper in place
   #  for i in range(steps):
-  #      self._gripper.step()
+  #      self.gripper.step()
   #      p.stepSimulation()
   #      time.sleep(self._timeStep)
 
@@ -136,11 +136,11 @@ if __name__ == "__main__":
   while (True):
       self.total_attempts += 1
 
-      fh_env._gripper.applyAction(0)
+      fh_env.gripper.applyAction(0)
       fh_env.sleepSim(1) 
-      fh_env._gripper.liftObject()
+      fh_env.gripper.liftObject()
       fh_env.sleepSim(0.5) 
-      fh_env._gripper.stopLiftObject()
+      fh_env.gripper.stopLiftObject()
       fh_env.sleepSim(0.2) 
       if (fh_env.getBlockHeight() > -0.05):
           self.total_success += 1

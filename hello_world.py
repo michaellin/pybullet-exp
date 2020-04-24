@@ -21,26 +21,26 @@ def compliantGrasp(self, args):
   """ Function that controls gripper to close the gripper while performing
       compliance control on the finger pads.
   """
-  self._gripper.applyAction(0, maxForce=0.25)
+  #self.gripper.applyAction(0, maxForce=0.25)
 
   counter = 0
   done = False
   leftForces = []
   rightForces = []
   while (not done):
-    leftFingerF = self._gripper.leftFingerF
-    rightFingerF = self._gripper.rightFingerF
+    leftFT = self.gripper.leftFT
+    rightFT = self.gripper.rightFT
     
-    #if (abs(leftFingerF[1]) > 0.03) and \
-    #  (abs(rightFingerF[1]) > 0.03):
-    #  done = True
-    
-    if (abs(leftFingerF[2]) > 0.03) or \
-      (abs(rightFingerF[2]) > 0.03):
-      self._gripper.applyAction(0, maxForce=0.0000001)
-    self._gripper.stepFingerComplianceControl()
+    if (leftFT.getContactState()) or (rightFT.getContactState()):
+      # if either finger is in contact then we switch to the
+      # next stage. Compliance control
+      #self.gripper.applyAction(0, maxForce=0.0000001)
+      self.gripper.stepFingerComplianceControl()
+    else:
+      # if not then just pick a direction left or right and move that way
+      self.gripper.makeContactControl()
 
-    self._gripper.step()
+    self.gripper.step()
     p.stepSimulation()
     time.sleep(self._timeStep)
 
@@ -55,11 +55,11 @@ def compliantGrasp(self, args):
     self.fileCounter += 1
 
   print("out! {}".format(counter))
-  self._gripper.applyAction(0, maxForce=100.)
+  self.gripper.applyAction(0, maxForce=100.)
   self.sleepSim(0.2) 
-  self._gripper.liftObject()
+  self.gripper.liftObject()
   self.sleepSim(0.5) 
-  self._gripper.stopLiftObject()
+  self.gripper.stopLiftObject()
   self.sleepSim(0.2) 
   self.total_attempts += 1
   if (self.getBlockHeight() > -0.05):
@@ -71,15 +71,15 @@ def admittanceControlGrasp(self, args):
   """ Function that controls gripper to close the gripper while performing
       admittance control on the wrist X axis.
   """
-  self._gripper.applyAction(0, maxForce=0.25)
+  self.gripper.applyAction(0, maxForce=0.25)
   counter = 0
   done = False
   leftForces = []
   rightForces = []
   while (not done and counter < 5*240):
     counter += 1
-    leftFingerF = self._gripper.leftFingerF
-    rightFingerF = self._gripper.rightFingerF
+    leftFingerF = self.gripper.leftFingerF
+    rightFingerF = self.gripper.rightFingerF
 
     # if data logging flag is on
     if (args.log):
@@ -90,14 +90,14 @@ def admittanceControlGrasp(self, args):
       (abs(rightFingerF[1]) > 0.03):
       done = True
     
-    #print("wirst force {}".format(self._gripper.getWristForce()))
+    #print("wirst force {}".format(self.gripper.getWristForce()))
     #print("L {} R {}".format(leftFingerF[1],rightFingerF[1]))
     if not done:
       if (abs(leftFingerF[1]) > 0.03) is not \
         (abs(rightFingerF[1]) > 0.03):
-          self._gripper.stepAdmittanceControl()
+          self.gripper.stepAdmittanceControl()
 
-    self._gripper.step()
+    self.gripper.step()
     p.stepSimulation()
     time.sleep(self._timeStep)
 
@@ -107,11 +107,11 @@ def admittanceControlGrasp(self, args):
     self.fileCounter += 1
 
   print("out! {}".format(counter))
-  self._gripper.applyAction(0, maxForce=100.)
+  self.gripper.applyAction(0, maxForce=100.)
   self.sleepSim(0.2) 
-  self._gripper.liftObject()
+  self.gripper.liftObject()
   self.sleepSim(0.5) 
-  self._gripper.stopLiftObject()
+  self.gripper.stopLiftObject()
   self.sleepSim(0.2) 
   self.total_attempts += 1
   if (self.getBlockHeight() > -0.05):
@@ -127,21 +127,21 @@ def simpleGrasp(self, args):
   counter = 0
   while not done:
     counter += 1
-    self._gripper.applyAction(0, maxForce=0.25)
-    self._gripper.step()
+    self.gripper.applyAction(0, maxForce=0.25)
+    self.gripper.step()
     p.stepSimulation()
     time.sleep(self._timeStep)
-    leftFingerF = self._gripper.leftFingerF
-    rightFingerF = self._gripper.rightFingerF
+    leftFingerF = self.gripper.leftFingerF
+    rightFingerF = self.gripper.rightFingerF
     if ((abs(leftFingerF[1]) > 0.03) or \
       (abs(rightFingerF[1]) > 0.03) or \
       counter > 5*240):
-      self._gripper.applyAction(0, maxForce=100.)
+      self.gripper.applyAction(0, maxForce=100.)
       done = True
   self.sleepSim(1) 
-  self._gripper.liftObject()
+  self.gripper.liftObject()
   self.sleepSim(0.5) 
-  self._gripper.stopLiftObject()
+  self.gripper.stopLiftObject()
   self.sleepSim(0.2) 
   self.total_attempts += 1
   if (self.getBlockHeight() > -0.05):
