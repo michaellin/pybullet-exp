@@ -19,10 +19,10 @@ class FrankaHandGymEnv(gym.Env):
     self._performGrasp = performGraspFunc
 
     # camera parameters
-    self._camDist = 0.25
-    self._camYaw = -90
-    self._camPitch = -89
-    self._camTargetPosition = [0.1, 0., 0.]
+    self._camDist = 0.2
+    self._camYaw = 0.
+    self._camPitch = -45
+    self._camTargetPosition = [0.2, 0., -0.1]
 
     # experiment state variables
     self.total_attempts = 0
@@ -70,19 +70,22 @@ class FrankaHandGymEnv(gym.Env):
     #xpos = 0.198 + 0.035 * (random.random()-0.5)
     #ypos = 0 + 0.056 * (random.random()-0.5)
     #ang = 3.14 * 0.5 + 3.1415925438 * random.random()
-    #xpos = 0.195 
-    #ypos = -0.015
-    #ang = 3.14 * 0.5 + 3.1415925438 * random.random()
-    #orn = p.getQuaternionFromEuler([0, 1.57079632679, ang])
-    #self.blockUid = p.loadURDF("data/block.urdf", 
-    #                            xpos, ypos, -0.0149,
-    #                            orn[0], orn[1], orn[2], orn[3])
+    """
+    xpos = 0.195 
+    ypos = -0.015
+    ang = 3.14 * 0.5
+    orn = p.getQuaternionFromEuler([0, 1.57079632679, ang])
+    self.blockUid = p.loadURDF("data/block.urdf", 
+                                xpos, ypos, -0.0149,
+                                orn[0], orn[1], orn[2], orn[3])
+    """
 
-    xpos = 0.195 + 0.065
+    xpos = 0.195 + 0.04
+    #xpos = 0.195 + 0.065 + 0.01
     #xpos = 0.195 + 0.065 + 0.025 * (random.random()-0.5)
-    ypos = 0.02
+    ypos = 0.000
     #ypos = 0+ 0.055 * (random.random()-0.5)
-    q = R.from_euler('xyz', [90, 0, 180], degrees=True).as_quat()
+    q = R.from_euler('xyz', [90, 0, 0], degrees=True).as_quat()
     #self.mugUid = p.loadURDF("data/mug.urdf", xpos, ypos, -0.18,
     #                    q[0], q[1], q[2], q[3])
     self.mugUid = p.loadSDF("data/mug.sdf",

@@ -7,6 +7,7 @@ import argparse
 
 def main(args):
 
+  #env = FrankaHandGymEnv(performGraspFunc = dummyControl)
   env = FrankaHandGymEnv(performGraspFunc = compliantGrasp)
   #env = FrankaHandGymEnv(performGraspFunc = admittanceControlGrasp)
   #env = FrankaHandGymEnv(performGraspFunc = simpleGrasp)
@@ -16,6 +17,12 @@ def main(args):
     print("lifted {}% trials".format(100.0*total_success/total_attempts))
     env.resetExp()
 
+
+def dummyControl(self, args):
+  while(True):
+    self.gripper.step()
+    p.stepSimulation()
+    time.sleep(self._timeStep)
 
 def compliantGrasp(self, args):
   """ Function that controls gripper to close the gripper while performing

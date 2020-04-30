@@ -39,7 +39,7 @@ in the pyBullet examples. -->
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>data/mug4_collision.obj</uri>
+              <uri>data/mug5_collision.obj</uri>
             </mesh>
           </geometry>
         </collision>

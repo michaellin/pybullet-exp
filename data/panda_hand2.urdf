@@ -6,7 +6,7 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="panda">
   <link name="panda_zbase">
     <inertial>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <!--<origin rpy="0 0 0" xyz="0 0 0"/>-->
       <mass value=".0"/>
       <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
     </inertial>
@@ -24,28 +24,28 @@
   </link>
   <link name="panda_xbase">
     <inertial>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+    <!--<origin rpy="0 0 0" xyz="0 0 0"/>-->
       <mass value=".001"/>
       <inertia ixx="0.000001" ixy="0" ixz="0" iyy="0.000001" iyz="0" izz="0.000001"/>
     </inertial>
   </link>
   <link name="panda_ybase">
     <inertial>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+    <!--<origin rpy="0 0 0" xyz="0 0 0"/>-->
       <mass value=".001"/>
       <inertia ixx="0.000001" ixy="0" ixz="0" iyy="0.000001" iyz="0" izz="0.000001"/>
     </inertial>
   </link>
   <link name="panda_wbase">
     <inertial>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+    <!--<origin rpy="0 0 0" xyz="0 0 0"/>-->
       <mass value=".001"/>
       <inertia ixx="0.000001" ixy="0" ixz="0" iyy="0.000001" iyz="0" izz="0.000001"/>
     </inertial>
   </link>
   <link name="panda_hand">
     <inertial>
-      <origin rpy="0 0 0" xyz="0 0 0.04"/>
+      <!--<origin rpy="0 0 0" xyz="0 0 0.04"/>-->
       <mass value=".0081"/>
       <inertia ixx="0.000001" ixy="0" ixz="0" iyy="0.000001" iyz="0" izz="0.000001"/>
     </inertial>
@@ -66,11 +66,11 @@
   </link>
   <link name="panda_rightfinger">
     <inertial>
-      <origin rpy="0 0 0" xyz="0.0 -0.0192 0.0162"/>
+    <!--<origin rpy="0 0 0" xyz="0.0 -0.0192 0.0162"/>-->
       <mass value="0.026"/>
       <inertia ixx="0.00000613982" ixy="0" ixz="0" iyy="0.000001452" iyz="-0.0000005264" izz="0.0000064"/>
     </inertial>
-    <visual>
+    <!--<visual>
       <geometry>
         <mesh filename="package://meshes/visual/finger_visual.obj"/>
       </geometry>
@@ -81,7 +81,7 @@
         <mesh filename="package://meshes/collision/finger_collider.obj"/>
       </geometry>
       <material name="panda_white"/>
-    </collision>
+    </collision>-->
   </link>
   <link name="panda_rightfingerpad">
     <contact>
@@ -92,12 +92,12 @@
       <lateral_friction value="1.0"/>
     </contact>
     <inertial>
-      <origin rpy="0 0 0" xyz="0 0. 0"/>
+    <!--<origin rpy="0 0 0" xyz="0 0. 0"/>-->
       <!--<mass value="0.003"/>-->
       <mass value="0.0000000000003"/> <!-- Small mass to not affect the FT readings -->
       <inertia ixx="0.0000001038" ixy="0" ixz="0" iyy="0.0000001039" iyz="0" izz="0.000000162"/>
     </inertial>
-    <visual>
+    <!--<visual>
       <geometry>
         <mesh filename="package://meshes/visual/fingerpad_visual2.obj"/>
       </geometry>
@@ -106,7 +106,7 @@
       <geometry>
         <mesh filename="package://meshes/collision/fingerpad_collider2.obj"/>
       </geometry>
-    </collision>
+    </collision> -->
   </link>
   <link name="panda_leftfinger">
     <contact>
@@ -117,7 +117,7 @@
       <lateral_friction value="1.0"/>
     </contact>
     <inertial>
-      <origin rpy="0 0 0" xyz="0.0 -0.0192 0.0162"/>
+    <!--<origin rpy="0 0 0" xyz="0.0 -0.0192 0.0162"/>-->
       <mass value="0.026"/>
       <inertia ixx="0.00000613982" ixy="0" ixz="0" iyy="0.000001452" iyz="-0.0000005264" izz="0.0000064"/>
     </inertial>
@@ -144,19 +144,19 @@
       <lateral_friction value="1.0"/>
     </contact>
     <inertial>
-      <origin rpy="0 0 0" xyz="0 0. 0"/>
+    <!--<origin rpy="0 0 0" xyz="0 0. 0"/>-->
       <!--<mass value="0.003"/>-->
       <mass value="0.0000000000003"/> <!-- Small mass to not affect the FT readings -->
       <inertia ixx="0.0000001038" ixy="0" ixz="0" iyy="0.0000001039" iyz="0" izz="0.000000162"/>
     </inertial>
     <visual>
-      <origin rpy="0 0 3.14159265359" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
         <mesh filename="package://meshes/visual/fingerpad_visual2.obj"/>
       </geometry>
     </visual>
     <collision>
-      <origin rpy="0 0 3.14159265359" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
         <mesh filename="package://meshes/collision/fingerpad_collider2.obj"/>
       </geometry>
@@ -202,7 +202,7 @@
   <joint name="panda_right_fingerpad_joint" type="fixed">
     <parent link="panda_rightfinger"/>
     <child link="panda_rightfingerpad"/>
-    <origin rpy="0 0 0" xyz="0 0 0.045"/>
+    <origin rpy="0 0 3.14159265359" xyz="0 0.009 0.045"/>
   </joint>
   <joint name="panda_finger_left" type="prismatic">
     <parent link="panda_hand"/>
@@ -215,6 +215,6 @@
   <joint name="panda_left_fingerpad_joint" type="fixed">
     <parent link="panda_leftfinger"/>
     <child link="panda_leftfingerpad"/>
-    <origin rpy="0 0 0" xyz="0 0 0.045"/>
+    <origin rpy="0 0 0" xyz="0 -0.009 0.045"/>
   </joint>
 </robot>
